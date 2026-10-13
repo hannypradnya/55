@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MPI Sad Darsana - Kosmik Luar Angkasa</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+darkMode: 'class',
+theme: {
+extend: {
+colors: {
+space: {
+900: '#030014',
+800: '#0b0624',
+700: '#150f3b',
+600: '#231955',
+accent: '#8b5cf6',
+glow: '#c084fc',
+gold: '#fbbf24',
+cyan: '#22d3ee'
+}
+},
+animation: {
+'spin-slow': 'spin 25s linear infinite',
+'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
+'float': 'float 6s ease-in-out infinite',
+},
+keyframes: {
+pulseGlow: {
+'0%, 100%': { opacity: 0.4, transform: 'scale(1)' },
+'50%': { opacity: 0.8, transform: 'scale(1.05)' },
+},
+float: {
+'0%, 100%': { transform: 'translateY(0px)' },
+'50%': { transform: 'translateY(-10px)' },
+}
+}
+}
+}
+}
+</script>
+<!-- FontAwesome & Google Fonts -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cinzel:wght@500;700&display=swap" rel="stylesheet">
+<!-- Canvas Confetti -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+body {
+font-family: 'Plus+Jakarta+Sans', sans-serif;
+background-color: #030014;
+color: #f8fafc;
+overflow-x: hidden;
+}
+.cinzel {
+font-family: 'Cinzel', serif;
+}
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+width: 8px;
+}
+::-webkit-scrollbar-track {
+background: #030014;
+}
+::-webkit-scrollbar-thumb {
+background: #4c1d95;
+border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+background: #6d28d9;
+}
+.glass-panel {
+background: rgba(15, 12, 41, 0.7);
+backdrop-filter: blur(16px);
+-webkit-backdrop-filter: blur(16px);
+border: 1px solid rgba(139, 92, 246, 0.2);
+box-shadow: 0 8px 32px 0 rgba(3, 0, 20, 0.5);
+}
+.glass-card {
+background: rgba(21, 15, 59, 0.5);
+backdrop-filter: blur(12px);
+-webkit-backdrop-filter: blur(12px);
+border: 1px solid rgba(192, 132, 252, 0.15);
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-card:hover {
+border-color: rgba(192, 132, 252, 0.5);
+box-shadow: 0 0 25px rgba(139, 92, 246, 0.3);
+transform: translateY(-4px);
+}
+.cosmic-gradient {
+background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 50%, #3b82f6 100%);
+}
+.text-glow {
+text-shadow: 0 0 20px rgba(192, 132, 252, 0.6);
+}
+canvas#starfield {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+z-index: -1;
+pointer-events: none;
+}
+</style>
+</head>
+<body class="min-h-screen relative flex flex-col justify-between selection:bg-purple-500 selection:text-white">
+​<!-- Background Starfield & Nebula Canvas -->
+<canvas id="starfield"></canvas>
+​<!-- Ambient Glowing Orbs -->
+<div class="fixed top-1/4 left-10 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow"></div>
+<div class="fixed bottom-1/4 right-10 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none animate-pulse-glow" style="animation-delay: 1.5s;"></div>
+​<!-- Header Navigation -->
+<header class="sticky top-0 z-50 glass-panel border-b border-purple-900/40 px-4 lg:px-8 py-3 transition-all duration-300">
+<div class="max-w-7xl mx-auto flex items-center justify-between">
+<!-- Logo & Brand -->
+<div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('home')">
+<div class="w-10 h-10 rounded-xl cosmic-gradient flex items-center justify-center shadow-lg shadow-purple-500/30 animate-float">
+<i class="fa-solid fa-atom text-white text-lg"></i>
+</div>
+<div>
+<h1 class="cinzel font-bold text-lg tracking-wider text-white text-glow">SAD DARSANA</h1>
+<p class="text-xs text-purple-300 font-medium">Media Pembelajaran Interaktif Kosmik</p>
+</div>
+</div>
+​<!-- Desktop Navigation Menu -->
+<nav class="hidden md:flex items-center space-x-1 lg:space-x-2">
+<button onclick="switchTab('home')" id="nav-home" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 text-purple-200 hover:text-white hover:bg-white/10 active">
+<i class="fa-solid fa-house mr-2 text-purple-400"></i>Beranda
+</button>
+<button onclick="switchTab('materi')" id="nav-materi" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 text-purple-200 hover:text-white hover:bg-white/10">
+<i class="fa-solid fa-book-open mr-2 text-purple-400"></i>Materi
+</button>
+<button onclick="switchTab('peta')" id="nav-peta" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 text-purple-200 hover:text-white hover:bg-white/10">
+<i class="fa-solid fa-compass mr-2 text-purple-400"></i>Peta Konsep
+</button>
+<button onclick="switchTab('kuis')" id="nav-kuis" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 text-purple-200 hover:text-white hover:bg-white/10">
+<i class="fa-solid fa-brain mr-2 text-purple-400"></i>Kuis Kosmik
+</button>
+<button onclick="switchTab('game')" id="nav-game" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 text-purple-200 hover:text-white hover:bg-white/10">
+<i class="fa-solid fa-gamepad mr-2 text-purple-400"></i>Game Orbit
+</button>
+<button onclick="switchTab('profil')" id="nav-profil" class="nav-btn px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 text-purple-200 hover:text-white hover:bg-white/10">
+<i class="fa-solid fa-users mr-2 text-purple-400"></i>Kelompok 3
+</button>
+</nav>
+​<!-- Quick Action / Audio toggle -->
+<div class="flex items-center space-x-3">
+<button onclick="toggleAudio()" id="audio-toggle" title="Putar Musik Kosmik" class="w-10 h-10 rounded-xl glass-card flex items-center justify-center text-purple-300 hover:text-white hover:border-purple-400 transition-all">
+<i class="fa-solid fa-volume-xmark" id="audio-icon"></i>
+</button>
+<!-- Mobile Menu Button -->
+<button onclick="toggleMobileMenu()" class="md:hidden w-10 h-10 rounded-xl glass-card flex items-center justify-center text-purple-300 hover:text-white">
+<i class="fa-solid fa-bars"></i>
+</button>
+</div>
+</div>
+​<!-- Mobile Dropdown Navigation -->
+<div id="mobile-menu" class="hidden md:hidden mt-3 pt-3 border-t border-purple-900/40 flex flex-col space-y-2">
+<button onclick="switchTab('home'); toggleMobileMenu();" class="text-left px-4 py-2 rounded-xl hover:bg-white/10 text-purple-200"><i class="fa-solid fa-house mr-3 text-purple-400"></i>Beranda</button>
+<button onclick="switchTab('materi'); toggleMobileMenu();" class="text-left px-4 py-2 rounded-xl hover:bg-white/10 text-purple-200"><i class="fa-solid fa-book-open mr-3 text-purple-400"></i>Materi</button>
+<button onclick="switchTab('peta'); toggleMobileMenu();" class="text-left px-4 py-2 rounded-xl hover:bg-white/10 text-purple-200"><i class="fa-solid fa-compass mr-3 text-purple-400"></i>Peta Konsep</button>
+<button onclick="switchTab('kuis'); toggleMobileMenu();" class="text-left px-4 py-2 rounded-xl hover:bg-white/10 text-purple-200"><i class="fa-solid fa-brain mr-3 text-purple-400"></i>Kuis Kosmik</button>
+<button onclick="switchTab('game'); toggleMobileMenu();" class="text-left px-4 py-2 rounded-xl hover:bg-white/10 text-purple-200"><i class="fa-solid fa-gamepad mr-3 text-purple-400"></i>Game Orbit</button>
+<button onclick="switchTab('profil'); toggleMobileMenu();" class="text-left px-4 py-2 rounded-xl hover:bg-white/10 text-purple-200"><i class="fa-solid fa-users mr-3 text-purple-400"></i>Kelompok 3</button>
+</div>
+</header>
+​<!-- Main Content Container -->
+<main class="flex-grow max-w-7xl w-full mx-auto px-4 lg:px-8 py-8 relative z-10">
+​<!-- TAB 1: BERANDA -->
+<section id="tab-home" class="tab-content space-y-12">
+<!-- Hero Banner -->
+<div class="relative rounded-3xl overflow-hidden glass-panel p-8 lg:p-14 border border-purple-500/30 shadow-2xl">
+<div class="absolute inset-0 bg-gradient-to-r from-purple-900/40 via-transparent to-blue-900/40 pointer-events-none"></div>
+<div class="relative z-10 max-w-2xl space-y-6">
+<div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-purple-500/20 border border-purple-400/30 text-purple-300 text-xs font-semibold uppercase tracking-wider">
+<i class="fa-solid fa-sparkles text-yellow-400"></i><span>Eksplorasi Filsafat Hindu</span>
+</div>
+<h2 class="cinzel text-4xl lg:text-6xl font-extrabold tracking-tight text-white text-glow">
+Mengarungi Galaksi <span class="text-transparent bg-clip-text cosmic-gradient">Sad Darsana</span>
+</h2>
+<p class="text-purple-200/90 text-base lg:text-lg leading-relaxed">
+Selamat datang di Media Pembelajaran Interaktif (MPI) berstandar kosmik mewah. Selami enam sistem filsafat ortodoks Hindu (Sad Darsana) melalui eksplorasi visual antariksa yang canggih, materi komprehensif, kuis menantang, dan mini games galaksi interaktif.
+</p>
+<div class="flex flex-wrap gap-4 pt-2">
+<button onclick="switchTab('materi')" class="px-8 py-4 rounded-2xl cosmic-gradient text-white font-bold shadow-lg shadow-purple-500/40 hover:scale-105 transition-all flex items-center space-x-3">
+<span>Mulai Belajar</span><i class="fa-solid fa-arrow-right"></i>
+</button>
+<button onclick="switchTab('kuis')" class="px-8 py-4 rounded-2xl glass-card text-purple-200 font-bold hover:text-white hover:bg-white/10 transition-all flex items-center space-x-3">
+<i class="fa-solid fa-brain text-purple-400"></i><span>Uji Pemahaman</span>
+</button>
+</div>
+</div>
+</div>
+​<!-- Features Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="glass-card p-6 rounded-3xl space-y-4">
+<div class="w-14 h-14 rounded-2xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 text-2xl">
+<i class="fa-solid fa-galaxy"></i>
+</div>
+<h3 class="cinzel font-bold text-xl text-white">Visual Kosmik Mewah</h3>
+<p class="text-purple-200/80 text-sm leading-relaxed">
+Didukung animasi partikel bintang real-time, efek nebula, dan antarmuka futuristik elegan yang memanjakan mata.
+</p>
+</div>
+<div class="glass-card p-6 rounded-3xl space-y-4">
+<div class="w-14 h-14 rounded-2xl bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-300 text-2xl">
+<i class="fa-solid fa-scroll"></i>
+</div>
+<h3 class="cinzel font-bold text-xl text-white">Modul Materi Lengkap</h3>
+<p class="text-purple-200/80 text-sm leading-relaxed">
+Materi disusun terstruktur dari Nyaya, Vaisesika, Samkhya, Yoga, Mimamsa, hingga Vedanta sesuai modul rujukan.
+</p>
+</div>
+<div class="glass-card p-6 rounded-3xl space-y-4">
+<div class="w-14 h-14 rounded-2xl bg-pink-500/20 border border-pink-500/40 flex items-center justify-center text-pink-300 text-2xl">
+<i class="fa-solid fa-trophy"></i>
+</div>
+<h3 class="cinzel font-bold text-xl text-white">Evaluasi & Games Canggih</h3>
+<p class="text-purple-200/80 text-sm leading-relaxed">
+Dilengkapi 12 soal kuis interaktif dengan umpan balik instan serta Game Kosmik interaktif untuk menguji ketangkasan berpikir.
+</p>
+</div>
+</div>
+</section>
+​<!-- TAB 2: MATERI -->
+<section id="tab-materi" class="tab-content hidden space-y-8">
+<div class="text-center max-w-3xl mx-auto space-y-3">
+<h2 class="cinzel text-3xl lg:text-4xl font-extrabold text-white text-glow">Modul Materi Sad Darsana</h2>
+<p class="text-purple-200 text-sm lg:text-base">
+Klik pada setiap sistem filsafat kosmik di bawah untuk mempelajari konsep, tokoh pendiri, dan intisari ajarannya secara mendalam.
+</p>
+</div>
+​<!-- Darsana Navigation Tabs -->
+<div class="flex flex-wrap justify-center gap-2" id="materi-tabs">
+<button onclick="selectMateri(0)" class="m-tab-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all bg-purple-600 text-white shadow-lg shadow-purple-600/40" data-index="0">1. Nyaya</button>
+<button onclick="selectMateri(1)" class="m-tab-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all glass-card text-purple-200 hover:text-white" data-index="1">2. Vaisesika</button>
+<button onclick="selectMateri(2)" class="m-tab-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all glass-card text-purple-200 hover:text-white" data-index="2">3. Samkhya</button>
+<button onclick="selectMateri(3)" class="m-tab-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all glass-card text-purple-200 hover:text-white" data-index="3">4. Yoga</button>
+<button onclick="selectMateri(4)" class="m-tab-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all glass-card text-purple-200 hover:text-white" data-index="4">5. Mimamsa</button>
+<button onclick="selectMateri(5)" class="m-tab-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all glass-card text-purple-200 hover:text-white" data-index="5">6. Vedanta</button>
+</div>
+​<!-- Materi Content Display Card -->
+<div class="glass-panel rounded-3xl p-6 lg:p-10 border border-purple-500/30 space-y-6" id="materi-display-box">
+<!-- Dynamically Injected by JS -->
+</div>
+</section>
+​<!-- TAB 3: PETA KONSEP -->
+<section id="tab-peta" class="tab-content hidden space-y-8">
+<div class="text-center max-w-3xl mx-auto space-y-3">
+<h2 class="cinzel text-3xl lg:text-4xl font-extrabold text-white text-glow">Peta Konsep Sad Darsana</h2>
+<p class="text-purple-200 text-sm lg:text-base">
+Sistem klasifikasi filsafat Hindu yang bersumber dari Weda (Astika), terbagi menjadi 6 aliran utama kosmik pemikiran.
+</p>
+</div>
+​<!-- Interactive Orbit Map -->
+<div class="glass-panel rounded-3xl p-8 border border-purple-500/30 flex flex-col items-center justify-center relative min-h-[500px] overflow-hidden">
+<!-- Center Sun / Core -->
+<div class="w-32 h-32 rounded-full cosmic-gradient flex flex-col items-center justify-center text-center p-4 shadow-2xl shadow-purple-500/50 z-20 animate-pulse-glow">
+<i class="fa-solid fa-om text-white text-2xl mb-1"></i>
+<span class="cinzel font-bold text-xs text-white">SAD DARSANA</span>
+<span class="text-[10px] text-purple-200">Enam Pandangan</span>
+</div>
+​<!-- Orbit Nodes Container -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-4xl mt-8 z-20">
+<div onclick="selectMateri(0); switchTab('materi');" class="glass-card p-5 rounded-2xl cursor-pointer hover:border-purple-400 text-center space-y-2">
+<div class="w-10 h-10 rounded-xl bg-purple-500/20 mx-auto flex items-center justify-center text-purple-300 font-bold">1</div>
+<h4 class="cinzel font-bold text-white text-lg">Nyaya</h4>
+<p class="text-xs text-purple-300">Filsafat Logika & Epistemologi ( महर्षि गौतम / Rsi Gautama )</p>
+</div>
+<div onclick="selectMateri(1); switchTab('materi');" class="glass-card p-5 rounded-2xl cursor-pointer hover:border-purple-400 text-center space-y-2">
+<div class="w-10 h-10 rounded-xl bg-purple-500/20 mx-auto flex items-center justify-center text-purple-300 font-bold">2</div>
+<h4 class="cinzel font-bold text-white text-lg">Vaisesika</h4>
+<p class="text-xs text-purple-300">Filsafat Pluralisme & Atomistik ( महर्षि कणाद / Rsi Kanada )</p>
+</div>
+<div onclick="selectMateri(2); switchTab('materi');" class="glass-card p-5 rounded-2xl cursor-pointer hover:border-purple-400 text-center space-y-2">
+<div class="w-10 h-10 rounded-xl bg-purple-500/20 mx-auto flex items-center justify-center text-purple-300 font-bold">3</div>
+<h4 class="cinzel font-bold text-white text-lg">Samkhya</h4>
+<p class="text-xs text-purple-300">Filsafat Dualisme Purusha & Prakerti ( महर्षि कपिल / Rsi Kapila )</p>
+</div>
+<div onclick="selectMateri(3); switchTab('materi');" class="glass-card p-5 rounded-2xl cursor-pointer hover:border-purple-400 text-center space-y-2">
+<div class="w-10 h-10 rounded-xl bg-purple-500/20 mx-auto flex items-center justify-center text-purple-300 font-bold">4</div>
+<h4 class="cinzel font-bold text-white text-lg">Yoga</h4>
+<p class="text-xs text-purple-300">Filsafat Pengendalian Diri & Meditasi ( महर्षि पतञ्जलि / Rsi Patanjali )</p>
+</div>
+<div onclick="selectMateri(4); switchTab('materi');" class="glass-card p-5 rounded-2xl cursor-pointer hover:border-purple-400 text-center space-y-2">
+<div class="w-10 h-10 rounded-xl bg-purple-500/20 mx-auto flex items-center justify-center text-purple-300 font-bold">5</div>
+<h4 class="cinzel font-bold text-white text-lg">Mimamsa</h4>
+<p class="text-xs text-purple-300">Filsafat Ritual & Hermeneutika Weda ( महर्षि जैमिनि / Rsi Jaimini )</p>
+</div>
+<div onclick="selectMateri(5); switchTab('materi');" class="glass-card p-5 rounded-2xl cursor-pointer hover:border-purple-400 text-center space-y-2">
+<div class="w-10 h-10 rounded-xl bg-purple-500/20 mx-auto flex items-center justify-center text-purple-300 font-bold">6</div>
+<h4 class="cinzel font-bold text-white text-lg">Vedanta</h4>
+<p class="text-xs text-purple-300">Filsafat Metafisika & Upanisad ( महर्षि बादरायण / Rsi Badarayana )</p>
+</div>
+</div>
+</div>
+</section>
+​<!-- TAB 4: KUIS KOSMIK (12 Soal) -->
+<section id="tab-kuis" class="tab-content hidden space-y-8">
+<div class="text-center max-w-3xl mx-auto space-y-3">
+<h2 class="cinzel text-3xl lg:text-4xl font-extrabold text-white text-glow">Kuis Kosmik Sad Darsana</h2>
+<p class="text-purple-200 text-sm lg:text-base">
+Uji pemahaman kosmik Anda melalui 12 soal pilihan ganda komprehensif. Dapatkan skor terbaik!
+</p>
+</div>
+​<!-- Quiz Box -->
+<div class="max-w-3xl mx-auto glass-panel rounded-3xl p-6 lg:p-10 border border-purple-500/30 relative" id="quiz-container">
+<!-- Start Screen -->
+<div id="quiz-start" class="text-center space-y-6 py-8">
+<div class="w-20 h-20 mx-auto rounded-3xl cosmic-gradient flex items-center justify-center text-white text-3xl shadow-xl shadow-purple-500/40 animate-float">
+<i class="fa-solid fa-brain"></i>
+</div>
+<div class="space-y-2">
+<h3 class="cinzel text-2xl font-bold text-white">Siap Menjelajahi Kuis Kosmik?</h3>
+<p class="text-purple-200 text-sm max-w-md mx-auto">Terdapat 12 soal pilihan ganda menantang seputar Sad Darsana. Uji ketepatan dan raih predikat Master Kosmik!</p>
+</div>
+<button onclick="startQuiz()" class="px-8 py-4 rounded-2xl cosmic-gradient text-white font-bold shadow-lg shadow-purple-500/40 hover:scale-105 transition-all">
+Mulai Kuis Sekarang
+</button>
+</div>
+​<!-- Active Question Screen -->
+<div id="quiz-active" class="hidden space-y-6">
+<div class="flex items-center justify-between text-xs text-purple-300 font-semibold border-b border-purple-900/50 pb-4">
+<span id="quiz-progress-text">Soal 1 dari 12</span>
+<span id="quiz-score-badge" class="px-3 py-1 rounded-full bg-purple-500/20 border border-purple-400/30 text-purple-200">Skor: 0</span>
+</div>
+​<div class="space-y-4">
+<h4 id="quiz-question" class="text-lg lg:text-xl font-bold text-white leading-relaxed">
+<!-- Question Text -->
+</h4>
+<div class="grid grid-cols-1 gap-3" id="quiz-options">
+<!-- Options -->
+</div>
+</div>
+​<div class="flex justify-between pt-4">
+<button id="quiz-next-btn" onclick="nextQuestion()" class="hidden px-6 py-3 rounded-xl cosmic-gradient text-white font-bold ml-auto hover:scale-105 transition-all">
+Soal Berikutnya <i class="fa-solid fa-arrow-right ml-2"></i>
+</button>
+</div>
+</div>
+​<!-- Result Screen -->
+<div id="quiz-result" class="hidden text-center space-y-6 py-8">
+<div class="w-20 h-20 mx-auto rounded-3xl bg-green-500/20 border border-green-500/40 flex items-center justify-center text-green-400 text-3xl shadow-xl shadow-green-500/20 animate-bounce">
+<i class="fa-solid fa-award"></i>
+</div>
+<div class="space-y-2">
+<h3 class="cinzel text-2xl font-bold text-white">Misi Kuis Selesai!</h3>
+<p class="text-purple-200 text-sm">Anda telah menyelesaikan seluruh 12 soal kuis kosmik Sad Darsana.</p>
+<div class="text-3xl font-extrabold text-transparent bg-clip-text cosmic-gradient pt-2" id="final-score-display">
+Skor Anda: 120 / 120
+</div>
+</div>
+<div class="flex justify-center space-x-4 pt-4">
+<button onclick="resetQuiz()" class="px-6 py-3 rounded-2xl cosmic-gradient text-white font-bold hover:scale-105 transition-all">
+<i class="fa-solid fa-rotate-right mr-2"></i>Ulangi Kuis
+</button>
+<button onclick="switchTab('home')" class="px-6 py-3 rounded-2xl glass-card text-purple-200 font-bold hover:text-white">
+Kembali ke Beranda
+</button>
+</div>
+</div>
+</div>
+</section>
+​<!-- TAB 5: GAME ORBIT -->
+<section id="tab-game" class="tab-content hidden space-y-8">
+<div class="text-center max-w-3xl mx-auto space-y-3">
+<h2 class="cinzel text-3xl lg:text-4xl font-extrabold text-white text-glow">Game Kosmik: Orbit Filsafat</h2>
+<p class="text-purple-200 text-sm lg:text-base">
+Cocokkan aliran Sad Darsana dengan tokoh pendiri atau konsep utamanya sebelum waktu habis!
+</p>
+</div>
+​<!-- Game Container -->
+<div class="max-w-3xl mx-auto glass-panel rounded-3xl p-6 lg:p-10 border border-purple-500/30 text-center space-y-6">
+<!-- Game Start Screen -->
+<div id="game-start" class="space-y-6 py-6">
+<div class="w-20 h-20 mx-auto rounded-3xl cosmic-gradient flex items-center justify-center text-white text-3xl shadow-xl shadow-purple-500/40 animate-float">
+<i class="fa-solid fa-gamepad"></i>
+</div>
+<div class="space-y-2">
+<h3 class="cinzel text-2xl font-bold text-white">Tantangan Mencocokkan Orbit</h3>
+<p class="text-purple-200 text-sm max-w-md mx-auto">Uji kecepatan dan ketepatan Anda memasangkan aliran Sad Darsana dengan pendirinya dalam waktu terbatas.</p>
+</div>
+<button onclick="startGame()" class="px-8 py-4 rounded-2xl cosmic-gradient text-white font-bold shadow-lg shadow-purple-500/40 hover:scale-105 transition-all">
+Mulai Game Kosmik
+</button>
+</div>
+​<!-- Game Active Screen -->
+<div id="game-active" class="hidden space-y-6">
+<div class="flex justify-between items-center text-sm font-semibold text-purple-300 border-b border-purple-900/50 pb-4">
+<span id="game-score">Skor: 0</span>
+<span id="game-timer" class="text-yellow-400"><i class="fa-solid fa-stopwatch mr-1"></i> Waktu: 30s</span>
+</div>
+​<div class="glass-card p-6 rounded-2xl space-y-3">
+<span class="text-xs uppercase tracking-widest text-purple-400 font-bold">Pertanyaan Kosmik</span>
+<h4 id="game-question" class="text-xl font-bold text-white">Siapakah pendiri aliran Nyaya?</h4>
+</div>
+​<div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="game-options">
+<!-- Options generated by JS -->
+</div>
+</div>
+​<!-- Game Over Screen -->
+<div id="game-over" class="hidden space-y-6 py-6">
+<div class="w-20 h-20 mx-auto rounded-3xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 text-3xl shadow-xl">
+<i class="fa-solid fa-medal"></i>
+</div>
+<div class="space-y-2">
+<h3 class="cinzel text-2xl font-bold text-white">Game Selesai!</h3>
+<p class="text-purple-200 text-sm" id="game-final-score">Skor Akhir Anda: 0</p>
+</div>
+<button onclick="startGame()" class="px-8 py-4 rounded-2xl cosmic-gradient text-white font-bold shadow-lg shadow-purple-500/40 hover:scale-105 transition-all">
+Main Lagi
+</button>
+</div>
+</div>
+</section>
+​<!-- TAB 6: PROFIL KELOMPOK 3 -->
+<section id="tab-profil" class="tab-content hidden space-y-8">
+<div class="text-center max-w-3xl mx-auto space-y-3">
+<h2 class="cinzel text-3xl lg:text-4xl font-extrabold text-white text-glow">Kelompok 3 - Kreator Kosmik</h2>
+<p class="text-purple-200 text-sm lg:text-base">
+Tim pengembang Media Pembelajaran Interaktif Sad Darsana berstandar galaksi tinggi.
+</p>
+</div>
+​<!-- Team Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="glass-card p-6 rounded-3xl text-center space-y-4 hover:border-purple-400 transition-all">
+<div class="w-16 h-16 rounded-2xl cosmic-gradient mx-auto flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+01
+</div>
+<div>
+<h4 class="cinzel font-bold text-white text-base">Anak Agung Sri Ambarawati</h4>
+<p class="text-xs text-purple-300 mt-1">No. Absen: 01</p>
+</div>
+</div>
+<div class="glass-card p-6 rounded-3xl text-center space-y-4 hover:border-purple-400 transition-all">
+<div class="w-16 h-16 rounded-2xl cosmic-gradient mx-auto flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+25
+</div>
+<div>
+<h4 class="cinzel font-bold text-white text-base">I Putu Galang Aditya</h4>
+<p class="text-xs text-purple-300 mt-1">No. Absen: 25</p>
+</div>
+</div>
+<div class="glass-card p-6 rounded-3xl text-center space-y-4 hover:border-purple-400 transition-all">
+<div class="w-16 h-16 rounded-2xl cosmic-gradient mx-auto flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+26
+</div>
+<div>
+<h4 class="cinzel font-bold text-white text-base">Kadek Anindya Citra Kirana</h4>
+<p class="text-xs text-purple-300 mt-1">No. Absen: 26</p>
+</div>
+</div>
+<div class="glass-card p-6 rounded-3xl text-center space-y-4 hover:border-purple-400 transition-all">
+<div class="w-16 h-16 rounded-2xl cosmic-gradient mx-auto flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+35
+</div>
+<div>
+<h4 class="cinzel font-bold text-white text-base">Ni Made Putri Swandini</h4>
+<p class="text-xs text-purple-300 mt-1">No. Absen: 35</p>
+</div>
+</div>
+<div class="glass-card p-6 rounded-3xl text-center space-y-4 hover:border-purple-400 transition-all">
+<div class="w-16 h-16 rounded-2xl cosmic-gradient mx-auto flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+39
+</div>
+<div>
+<h4 class="cinzel font-bold text-white text-base">Ni Putu Wulan Kusumayanti</h4>
+<p class="text-xs text-purple-300 mt-1">No. Absen: 39</p>
+</div>
+</div>
+<div class="glass-card p-6 rounded-3xl text-center space-y-4 hover:border-purple-400 transition-all">
+<div class="w-16 h-16 rounded-2xl cosmic-gradient mx-auto flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+41
+</div>
+<div>
+<h4 class="cinzel font-bold text-white text-base">Putu Citra Rasmini</h4>
+<p class="text-xs text-purple-300 mt-1">No. Absen: 41</p>
+</div>
+</div>
+<div class="glass-card p-6 rounded-3xl text-center space-y-4 hover:border-purple-400 transition-all">
+<div class="w-16 h-16 rounded-2xl cosmic-gradient mx-auto flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+42
+</div>
+<div>
+<h4 class="cinzel font-bold text-white text-base">Putu Octhaviyanti</h4>
+<p class="text-xs text-purple-300 mt-1">No. Absen: 42</p>
+</div>
+</div>
+<div class="glass-card p-6 rounded-3xl text-center space-y-4 hover:border-purple-400 transition-all">
+<div class="w-16 h-16 rounded-2xl cosmic-gradient mx-auto flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+10
+</div>
+<div>
+<h4 class="cinzel font-bold text-white text-base">I Dewa Ayu Hanny Pradnya Nitaswari</h4>
+<p class="text-xs text-purple-300 mt-1">No. Absen: 10</p>
+</div>
+</div>
+</div>
+</section>
+​</main>
+​<!-- Footer -->
+<footer class="glass-panel border-t border-purple-900/40 py-6 mt-16 text-center text-xs text-purple-300 relative z-10">
+<p>© 2026 Media Pembelajaran Interaktif Sad Darsana - Kelompok 3. All Rights Reserved.</p>
+<p class="mt-1 text-purple-400">Didesain dengan Tema Kosmik Mewah & Elegan</p>
+</footer>
+​<!-- Audio Synthesizer / Ambient Sound Script -->
+<script>
+let audioCtx = null;
+let isAudioPlaying = false;
+let oscillator = null;
+let gainNode = null;
+​function toggleAudio() {
+const icon = document.getElementById('audio-icon');
+if (!isAudioPlaying) {
+try {
+audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+oscillator = audioCtx.createOscillator();
+gainNode = audioCtx.createGain();
+​oscillator.type = 'sine';
+oscillator.frequency.setValueAtTime(110, audioCtx.currentTime); // A2 drone kosmik
+gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+​oscillator.connect(gainNode);
+gainNode.connect(audioCtx.destination);
+oscillator.start();
+​isAudioPlaying = true;
+icon.className = "fa-solid fa-volume-high text-purple-300 animate-pulse";
+} catch(e) {
+console.log("Audio not supported", e);
+}
+} else {
+if (oscillator) {
+oscillator.stop();
+oscillator.disconnect();
+}
+if (audioCtx) {
+audioCtx.close();
+}
+isAudioPlaying = false;
+icon.className = "fa-solid fa-volume-xmark";
+}
+}
+</script>
+​<!-- Interactive Logic Script -->
+<script>
+// Starfield Canvas Animation
+const canvas = document.getElementById('starfield');
+const ctx = canvas.getContext('2d');
+let stars = [];
+const numStars = 200;
+​function resizeCanvas() {
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+}
+​window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+​for (let i = 0; i < numStars; i++) {
+stars.push({
+x: Math.random() * canvas.width,
+y: Math.random() * canvas.height,
+radius: Math.random() * 1.8,
+alpha: Math.random(),
+speed: Math.random() * 0.2 + 0.05
+});
+}
+​function animateStars() {
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+ctx.fillStyle = '#030014';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+​stars.forEach(star => {
+ctx.beginPath();
+ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+ctx.fillStyle = rgba(255, 255, 255, ${star.alpha});
+ctx.fill();
+​star.y -= star.speed;
+if (star.y < 0) {
+star.y = canvas.height;
+star.x = Math.random() * canvas.width;
+}
+star.alpha += (Math.random() * 0.02 - 0.01);
+if (star.alpha > 1) star.alpha = 1;
+if (star.alpha < 0.2) star.alpha = 0.2;
+});
+requestAnimationFrame(animateStars);
+}
+animateStars();
+​// Tab Switching Logic
+function switchTab(tabId) {
+document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+document.getElementById(tab-${tabId}).classList.remove('hidden');
+​document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active', 'bg-white/10', 'text-white'));
+const activeBtn = document.getElementById(nav-${tabId});
+if (activeBtn) {
+activeBtn.classList.add('active', 'bg-white/10', 'text-white');
+}
+window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+​function toggleMobileMenu() {
+const menu = document.getElementById('mobile-menu');
+menu.classList.toggle('hidden');
+}
+​// Materi Data (Sesuai Modul Sad Darsana)
+const materiData = [
+{
+title: "1. Filsafat Nyaya",
+founder: "Maharesi Gautama (Aksapada)",
+source: "Nyaya Sutra",
+concept: "Filsafat Logika, Epistemologi, dan Penalaran",
+desc: "Nyaya adalah sistem filsafat yang menitikberatkan pada logika (tarka) dan cara memperoleh pengetahuan yang benar (pramana). Menurut Nyaya, penderitaan lahir dari ketidaktahuan (avidya), dan pembebasan (moksa) dicapai melalui pengetahuan yang benar mengenai realitas.",
+pramana: ["Pratyaksa (Pengamatan Langsung)", "Anumana (Penyimpulan/Inferensi)", "Upamana (Perbandingan)", "Sabda (Kesaksian/Otoritas Kitab Suci)"]
+},
+{
+title: "2. Filsafat Vaisesika",
+founder: "Maharesi Kanada (Auluka)",
+source: "Vaisesika Sutra",
+concept: "Filsafat Pluralisme, Atomistik & Kategori Realitas",
+desc: "Vaisesika didirikan oleh Maharesi Kanada. Aliran ini terkenal dengan pandangan atomistiknya bahwa alam semesta terbentuk dari partikel-partikel terkecil yang tidak dapat dibagi lagi (paramanu). Vaisesika mengklasifikasikan seluruh objek alam semesta ke dalam kategori-kategori khusus (padartha).",
+pramana: ["Pratyaksa (Pengamatan)", "Anumana (Penyimpulan)"]
+},
+{
+title: "3. Filsafat Samkhya",
+founder: "Maharesi Kapila",
+source: "Samkhya Karika",
+concept: "Filsafat Dualisme Ekstrem: Purusha & Prakerti",
+desc: "Samkhya adalah aliran tertua dalam Sad Darsana yang bersifat dualistik. Menyatakan bahwa alam semesta tercipta dari interaksi dua prinsip abadi: Purusha (jiwa murni yang sadar) dan Prakerti (materi primordial yang tidak sadar, terdiri atas tiga guna: Sattwa, Rajas, Tamas).",
+pramana: ["Pratyaksa (Pengamatan)", "Anumana (Penyimpulan)", "Sabda (Kitab Suci)"]
+},
+{
+title: "4. Filsafat Yoga",
+founder: "Maharesi Patanjali",
+source: "Yoga Sutra",
+concept: "Filsafat Pengendalian Batin & Meditasi",
+desc: "Yoga merupakan sistem filsafat praktis yang erat kaitannya dengan Samkhya. Yoga menekankan penyatuan jiwa individu (Atman) dengan jiwa universal melalui pengendalian aktivitas mental (citta vrtti nirodha) melalui delapan tahapan spiritual (Ashtanga Yoga).",
+pramana: ["Pratyaksa", "Anumana", "Sabda"]
+},
+{
+title: "5. Filsafat Mimamsa (Purwa Mimamsa)",
+founder: "Maharesi Jaimini",
+source: "Mimamsa Sutra",
+concept: "Filsafat Ritual, Dharma & Hermeneutika Weda",
+desc: "Mimamsa berfokus pada bagian ritualistik dari Weda (Karma Kanda). Aliran ini menegaskan bahwa Dharma (kewajiban suci dan pelaksanaan yadnya/ritual) adalah hukum tertinggi kosmik yang mendatangkan kebahagiaan duniawi dan sorgawi.",
+pramana: ["Pratyaksa", "Anumana", "Upamana", "Sabda", "Arthapatti (Implikasi)", "Anupalabdhi (Ketiadaan)"]
+},
+{
+title: "6. Vedanta (Uttara Mimamsa)",
+founder: "Maharesi Badarayana (Vyasa)",
+source: "Brahma Sutra (Upanisad)",
+concept: "Filsafat Metafisika Tertinggi & Hubungan Atman-Brahman",
+desc: "Vedanta adalah puncak pemikiran filsafat Hindu yang bersumber dari Upanisad. Membahas secara mendalam hakikat Brahman (Tuhan Yang Maha Esa) dan Atman (jiwa), serta jalan menuju kebebasan mutlak (moksa).",
+pramana: ["Pratyaksa", "Anumana", "Sabda (Utama)"]
+}
+];
+​function selectMateri(index) {
+document.querySelectorAll('.m-tab-btn').forEach((btn, idx) => {
+if (idx === index) {
+btn.className = "m-tab-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all bg-purple-600 text-white shadow-lg shadow-purple-600/40";
+} else {
+btn.className = "m-tab-btn px-5 py-2.5 rounded-xl font-semibold text-sm transition-all glass-card text-purple-200 hover:text-white";
+}
+});
+​const data = materiData[index];
+const box = document.getElementById('materi-display-box');
+​let pramanaHtml = '';
+if (data.pramana) {
+pramanaHtml = <div class="space-y-2 pt-2"> <h5 class="text-xs uppercase tracking-wider text-purple-400 font-bold">Sumber Pengetahuan (Pramana):</h5> <div class="flex flex-wrap gap-2"> ${data.pramana.map(p => <span class="px-3 py-1 rounded-lg bg-purple-500/10 border border-purple-500/30 text-purple-200 text-xs">${p}</span>).join('')} </div> </div>;
+}
+​box.innerHTML = <div class="space-y-4"> <div class="flex flex-wrap items-center justify-between gap-2 border-b border-purple-900/40 pb-4"> <h3 class="cinzel text-2xl lg:text-3xl font-bold text-white text-glow">${data.title}</h3> <span class="px-3.5 py-1.5 rounded-full bg-purple-500/20 border border-purple-400/30 text-purple-300 text-xs font-semibold">${data.source}</span> </div> <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm"> <div class="glass-card p-4 rounded-2xl"> <span class="text-xs text-purple-400 font-bold block mb-1">Tokoh Pendiri:</span> <span class="text-white font-semibold text-base">${data.founder}</span> </div> <div class="glass-card p-4 rounded-2xl"> <span class="text-xs text-purple-400 font-bold block mb-1">Konsep Utama:</span> <span class="text-white font-semibold text-base">${data.concept}</span> </div> </div> <p class="text-purple-200 text-sm lg:text-base leading-relaxed pt-2">${data.desc}</p> ${pramanaHtml} </div>;
+}
+​// Initialize first materi
+selectMateri(0);
+​// Quiz Data (12 Soal)
+const quizQuestions = [
+{
+q: "Apa arti harfiah dari kata 'Darsana' dalam konteks filsafat Hindu?",
+options: ["Pandangan atau penglihatan terhadap kebenaran", "Kumpulan hukum dan aturan sosial", "Ritual pemujaan harian", "Ilmu perbintangan kosmik"],
+answer: 0
+},
+{
+q: "Sistem filsafat Sad Darsana yang dikelompokkan sebagai aliran ortodoks berarti aliran tersebut mengakui otoritas dari...",
+options: ["Kitab Suci Weda", "Hukum Karma Pala", "Sistem Kasta", "Pemerintahan Kerajaan"],
+answer: 0
+},
+{
+q: "Siapakah tokoh pendiri dari aliran filsafat Nyaya?",
+options: ["Maharesi Kanada", "Maharesi Gautama", "Maharesi Kapila", "Maharesi Patanjali"],
+answer: 1
+},
+{
+q: "Aliran filsafat yang terkenal dengan pandangan atomistik (paramanu) dalam menyusun alam semesta adalah...",
+options: ["Mimamsa", "Vedanta", "Vaisesika", "Samkhya"],
+answer: 2
+},
+{
+q: "Dua prinsip dasar utama dalam filsafat Samkhya adalah...",
+options: ["Brahman dan Atman", "Purusha dan Prakerti", "Karma dan Samsara", "Satyam dan Siwam"],
+answer: 1
+},
+{
+q: "Delapan tahapan spiritual (Ashtanga Yoga) untuk mengendalikan aktivitas batin diajarkan oleh...",
+options: ["Maharesi Patanjali", "Maharesi Jaimini", "Maharesi Badarayana", "Maharesi Gautama"],
+answer: 0
+},
+{
+q: "Aliran Mimamsa (Purwa Mimamsa) yang didirikan oleh Maharesi Jaimini menitikberatkan pada aspek...",
+options: ["Meditasi mendalam", "Pelaksanaan ritual dan yadnya (Karma Kanda)", "Logika analitis", "Metafisika murni"],
+answer: 1
+},
+{
+q: "Puncak pemikiran filosofis Hindu yang bersumber dari Upanisad dan membahas hubungan Atman dengan Brahman disebut...",
+options: ["Nyaya", "Vedanta", "Samkhya", "Vaisesika"],
+answer: 1
+},
+{
+q: "Berapa jumlah sumber pengetahuan valid (Pramana) yang diakui dalam aliran Nyaya?",
+options: ["2 Pramana", "3 Pramana", "4 Pramana", "6 Pramana"],
+answer: 2
+},
+{
+q: "Tiga unsur (guna) yang membentuk Prakerti dalam filsafat Samkhya adalah...",
+options: ["Bhur, Bhuvah, Swah", "Sattwa, Rajas, Tamas", "Brahma, Wisnu, Siwa", "Dharma, Artha, Kama"],
+answer: 1
+},
+{
+q: "Kitab suci utama yang menjadi dasar rujukan dari filsafat Vedanta (Uttara Mimamsa) adalah...",
+options: ["Brahma Sutra", "Nyaya Sutra", "Yoga Sutra", "Vaisesika Sutra"],
+answer: 0
+},
+{
+q: "Apa tujuan tertinggi (ultimate goal) yang ingin dicapai melalui pemahaman Sad Darsana?",
+options: ["Kekayaan material melimpah", "Moksa (kebebasan mutlak dari samsara)", "Kekuasaan di alam semesta", "Ketenaran nama"],
+answer: 1
+}
+];
+​let currentQuizIndex = 0;
+let quizScore = 0;
+let selectedOption = null;
+​function startQuiz() {
+currentQuizIndex = 0;
+quizScore = 0;
+document.getElementById('quiz-start').classList.add('hidden');
+document.getElementById('quiz-result').classList.add('hidden');
+document.getElementById('quiz-active').classList.remove('hidden');
+loadQuizQuestion();
+}
+​function loadQuizQuestion() {
+selectedOption = null;
+document.getElementById('quiz-next-btn').classList.add('hidden');
+const q = quizQuestions[currentQuizIndex];
+document.getElementById('quiz-progress-text').innerText = Soal ${currentQuizIndex + 1} dari 12;
+document.getElementById('quiz-score-badge').innerText = Skor: ${quizScore};
+document.getElementById('quiz-question').innerText = q.q;
+​const optionsContainer = document.getElementById('quiz-options');
+optionsContainer.innerHTML = '';
+​q.options.forEach((opt, idx) => {
+const btn = document.createElement('button');
+btn.className = "glass-card p-4 rounded-2xl text-left text-sm text-purple-200 hover:text-white hover:border-purple-400 transition-all flex items-center justify-between";
+btn.innerHTML = <span>${opt}</span><span class="w-6 h-6 rounded-full border border-purple-500/40 flex items-center justify-center text-xs text-purple-400">${String.fromCharCode(65 + idx)}</span>;
+btn.onclick = () => selectQuizOption(idx, btn);
+optionsContainer.appendChild(btn);
+});
+}
+​function selectQuizOption(idx, btnElement) {
+if (selectedOption !== null) return; // Already answered
+selectedOption = idx;
+const q = quizQuestions[currentQuizIndex];
+const allBtns = document.getElementById('quiz-options').children;
+​if (idx === q.answer) {
+btnElement.className = "glass-card p-4 rounded-2xl text-left text-sm text-white bg-green-500/20 border-green-500 flex items-center justify-between shadow-lg shadow-green-500/20";
+quizScore += 10;
+} else {
+btnElement.className = "glass-card p-4 rounded-2xl text-left text-sm text-white bg-red-500/20 border-red-500 flex items-center justify-between";
+allBtns[q.answer].className = "glass-card p-4 rounded-2xl text-left text-sm text-white bg-green-500/20 border-green-500 flex items-center justify-between";
+}
+​document.getElementById('quiz-score-badge').innerText = Skor: ${quizScore};
+document.getElementById('quiz-next-btn').classList.remove('hidden');
+}
+​function nextQuestion() {
+currentQuizIndex++;
+if (currentQuizIndex < quizQuestions.length) {
+loadQuizQuestion();
+} else {
+document.getElementById('quiz-active').classList.add('hidden');
+document.getElementById('quiz-result').classList.remove('hidden');
+document.getElementById('final-score-display').innerText = Skor Anda: ${quizScore} / 120;
+if (quizScore >= 100) {
+confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+}
+}
+}
+​function resetQuiz() {
+startQuiz();
+}
+​// Game Kosmik Logic
+const gameQuestions = [
+{ q: "Siapakah pendiri aliran Nyaya?", options: ["Rsi Gautama", "Rsi Kanada", "Rsi Kapila", "Rsi Patanjali"], answer: 0 },
+{ q: "Siapakah pendiri aliran Vaisesika?", options: ["Rsi Jaimini", "Rsi Kanada", "Rsi Badarayana", "Rsi Gautama"], answer: 1 },
+{ q: "Siapakah pendiri aliran Samkhya?", options: ["Rsi Patanjali", "Rsi Kapila", "Rsi Jaimini", "Rsi Kanada"], answer: 1 },
+{ q: "Siapakah pendiri aliran Yoga?", options: ["Rsi Badarayana", "Rsi Patanjali", "Rsi Gautama", "Rsi Kapila"], answer: 1 },
+{ q: "Siapakah pendiri aliran Mimamsa?", options: ["Rsi Jaimini", "Rsi Kanada", "Rsi Patanjali", "Rsi Badarayana"], answer: 0 },
+{ q: "Siapakah pendiri aliran Vedanta?", options: ["Rsi Badarayana", "Rsi Gautama", "Rsi Kapila", "Rsi Jaimini"], answer: 0 }
+];
+​let gameScore = 0;
+let gameTimer = 30;
+let gameInterval = null;
+let currentGameIndex = 0;
+​function startGame() {
+gameScore = 0;
+gameTimer = 30;
+currentGameIndex = 0;
+document.getElementById('game-start').classList.add('hidden');
+document.getElementById('game-over').classList.add('hidden');
+document.getElementById('game-active').classList.remove('hidden');
+​loadGameQuestion();
+if (gameInterval) clearInterval(gameInterval);
+gameInterval = setInterval(() => {
+gameTimer--;
+document.getElementById('game-timer').innerHTML = <i class="fa-solid fa-stopwatch mr-1"></i> Waktu: ${gameTimer}s;
+if (gameTimer <= 0) {
+clearInterval(gameInterval);
+endGame();
+}
+}, 1000);
+}
+​function loadGameQuestion() {
+if (currentGameIndex >= gameQuestions.length) {
+currentGameIndex = 0; // Loop questions if needed
+}
+const q = gameQuestions[currentGameIndex];
+document.getElementById('game-score').innerText = Skor: ${gameScore};
+document.getElementById('game-question').innerText = q.q;
+​const optionsContainer = document.getElementById('game-options');
+optionsContainer.innerHTML = '';
+​q.options.forEach(opt => {
+const btn = document.createElement('button');
+btn.className = "glass-card p-4 rounded-2xl text-center text-sm font-semibold text-purple-200 hover:text-white hover:border-purple-400 transition-all";
+btn.innerText = opt;
+btn.onclick = () => checkGameAnswer(opt, q.answer, q.options);
+optionsContainer.appendChild(btn);
+});
+}
+​function checkGameAnswer(selected, correctIndex, options) {
+if (selected === options[correctIndex]) {
+gameScore += 15;
+confetti({ particleCount: 40, spread: 50, origin: { y: 0.7 } });
+} else {
+gameScore = Math.max(0, gameScore - 5);
+}
+currentGameIndex++;
+loadGameQuestion();
+}
+​function endGame() {
+document.getElementById('game-active').classList.add('hidden');
+document.getElementById('game-over').classList.remove('hidden');
+document.getElementById('game-final-score').innerText = Skor Akhir Anda: ${gameScore};
+}
+</script>
+</body>
+</html>
